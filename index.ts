@@ -13,7 +13,9 @@ import base58 from "bs58";
 import "dotenv/config";
 
 const connection = new Connection(process.env.RPC_PROVIDER_URL as string);
-const keypair = Keypair.fromSecretKey(base58.decode(process.env.WALLET_PRIVATE_KEY as string));
+const keypair = Keypair.fromSecretKey(
+  base58.decode(process.env.WALLET_PRIVATE_KEY as string)
+);
 
 const apiKey = process.env.CROSSMINT_API_KEY;
 if (!apiKey) {
@@ -22,7 +24,7 @@ if (!apiKey) {
 
 interface ChatMessage {
   id: string;
-  role: 'user' | 'assistant' | 'system';
+  role: "user" | "assistant" | "system";
   content: string;
 }
 
@@ -58,102 +60,71 @@ const getUserInput = () => {
     while (true) {
       const userInput = await getUserInput();
 
-      if (userInput.toLowerCase() === 'exit') {
+      if (userInput.toLowerCase() === "exit") {
         console.log("\n👋 Thanks for shopping with us! Have a great day!");
         rl.close();
         break;
       }
 
       conversationHistory.push({
-        role: 'user',
+        role: "user",
         content: userInput,
-        id: `user-${Date.now()}`
+        id: `user-${Date.now()}`,
       });
 
       const messages: CoreMessage[] = [
         {
           role: "system",
-          content: "Always ask for ALL required information in the first response: 1) name, 2) shipping address, 3) email address, 4) payment method (USDC, SOL, or ETH), and 5) preferred chain (EVM, Solana, or others). Only proceed with the purchase when all information is provided."
+          content: `
+            No need to check the token balance of the user first.
+
+            Always ask for ALL required information in the first response:
+            1) Name
+            2) Shipping address
+            3) Recipient email address
+            4) Payment method (USDC, SOL, or ETH)
+            5) Preferred chain (EVM or Solana)
+            Only proceed with the purchase when all information is provided.
+            
+            When buying a product:
+            1) Use productLocator format 'amazon:B08SVZ775L'
+            2) Extract product locator from URLs
+            3) Require and parse valid shipping address (in format 'Name, Street, City, State ZIP, Country') and email
+            4) The recipient WILL be the email provided by the user
+            Don't ask to confirm payment to finalize orders.
+          `,
         },
-        {
-          role: "system",
-          content: "When buying a product, prefer to use productLocator, i.e. 'amazon:B08SVZ775L', as the product locator.",
-        },
-        {
-          role: "system",
-          content: "When buying a product, extract the product locator from the product URL in the user's message.",
-        },
-        {
-          role: "system",
-          content: "When buying a product use the get_address tool to get the payment.payerAddress.",
-        },
-        {
-          role: "system",
-          content: "When buying a product, payment.payerAddress MUST be the address returned from the get_address tool.",
-        },
-        {
-          role: "system",
-          content: "When buying a product, require the user to provide a valid shipping address and email address.",
-        },
-        {
-          role: "system",
-          content: "When buying a product, payment.payerAddress MUST be a valid Solana public key.",
-        },
-        {
-          role: "system",
-          content: "When buying a product, parse the address provided and identify required fields for the order: address, city, state, zip, country.",
-        },
-        {
-          role: "system",
-          content: "When buying a product, use the checkout tool with recipient information (email and shipping address) rather than wallet addresses.",
-        },
-        {
-          role: "system",
-          content: "When a user provides their shipping address in the format 'Name, Street, City, State ZIP, Country', parse and store these details.",
-        },
-        {
-          role: "system",
-          content: "When buying a product on Solana chain, payment.payerAddress MUST be a base58-encoded Solana public key. Never use 0x-style addresses for Solana transactions."
-        },
-        {
-          role: "system",
-          content: "Always call get_address first and store its result. Use EXACTLY that address value for payment.payerAddress in subsequent operations. DO NOT use any other address, such as 3GectP9HqkXryazFmGXmQhfgAvmYyKkZBK3HKCwaqyTc."
-        },
-        {
-          role: "system",
-          content: "When an order is placed, don't ask me to confirm the payment to finalize the order.",
-        },
-        ...conversationHistory.map(msg => ({
+        ...conversationHistory.map((msg) => ({
           role: msg.role,
-          content: msg.content
-        }))
+          content: msg.content,
+        })),
       ];
 
       try {
         const result = await generateText({
-          model: openai("gpt-4"),
+          model: openai("gpt-4o-mini"),
           tools: tools,
           maxSteps: 10,
           messages,
           onStepFinish: (event) => {
             console.log(event.toolResults);
-          }
+          },
         });
 
         conversationHistory.push({
-          role: 'assistant',
+          role: "assistant",
           content: result.text,
-          id: `assistant-${Date.now()}`
+          id: `assistant-${Date.now()}`,
         });
 
         console.log("\nAssistant:", result.text, "\n");
       } catch (error) {
-        console.error('Error:', error);
+        console.error("Error:", error);
       }
     }
   } catch (error) {
-    console.error('Fatal error:', error);
+    console.error("Fatal error:", error);
     rl.close();
     process.exit(1);
   }
-})(); 
+})();
