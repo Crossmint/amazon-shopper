@@ -91,6 +91,7 @@ const getUserInput = () => {
             2) Extract product locator from URLs
             3) Require and parse valid shipping address (in format 'Name, Street, City, State ZIP, Country') and email
             4) The recipient WILL be the email provided by the user
+            5) You can get the payer address using the get_wallet_address tool
             Don't ask to confirm payment to finalize orders.
           `,
         },
