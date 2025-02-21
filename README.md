@@ -15,8 +15,8 @@ An AI-powered shopping assistant that helps you purchase items from Amazon with 
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/Paella-Labs/mnt-dao-agent.git 
-cd mnt-dao-agent
+git clone https://github.com/crossmint/amazon-shopper.git 
+cd amazon-ai-shopper
 ```
 
 2. Prerequisites:
