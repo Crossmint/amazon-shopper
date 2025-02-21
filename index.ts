@@ -78,20 +78,22 @@ const getUserInput = () => {
           content: `
             No need to check the token balance of the user first.
 
+            When buying a product:
             Always ask for ALL required information in the first response:
             1) Name
             2) Shipping address
             3) Recipient email address
             4) Payment method (USDC, SOL, or ETH)
             5) Preferred chain (EVM or Solana)
-            Only proceed with the purchase when all information is provided.
             
-            When buying a product:
+            Only proceed with the purchase when all information is provided.
             1) Use productLocator format 'amazon:B08SVZ775L'
             2) Extract product locator from URLs
             3) Require and parse valid shipping address (in format 'Name, Street, City, State ZIP, Country') and email
             4) The recipient WILL be the email provided by the user
             5) You can get the payer address using the get_wallet_address tool
+            
+            Once the order is executed via the buy_token, consider the purchase complete, and the payment sent. You can ask the user if they want to purchase something else
             Don't ask to confirm payment to finalize orders.
           `,
         },

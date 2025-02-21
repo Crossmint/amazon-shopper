@@ -43,7 +43,7 @@ Configure the following in your `.env`:
 - `WALLET_PRIVATE_KEY`: Your Solana wallet's private key
 - `RPC_PROVIDER_URL`: Solana RPC endpoint (e.g., Helius)
 - `OPENAI_API_KEY`: Your OpenAI API key
-- `CROSSMINT_API_KEY`: Your Crossmint API key
+- `CROSSMINT_API_KEY`: Your Crossmint API key (you only need one scope: `orders.create`)
 
 5. Start the development server:
 
