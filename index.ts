@@ -5,17 +5,25 @@ import { CoreMessage, generateText } from "ai";
 // GOAT Plugins
 import { getOnChainTools } from "@goat-sdk/adapter-vercel-ai";
 import { crossmintHeadlessCheckout } from "@goat-sdk/plugin-crossmint-headless-checkout";
-import { splToken, USDC } from "@goat-sdk/plugin-spl-token";
-import { solana } from "@goat-sdk/wallet-solana";
 
-import { Connection, Keypair } from "@solana/web3.js";
-import base58 from "bs58";
 import "dotenv/config";
 
-const connection = new Connection(process.env.RPC_PROVIDER_URL as string);
-const keypair = Keypair.fromSecretKey(
-  base58.decode(process.env.WALLET_PRIVATE_KEY as string)
-);
+import { http } from "viem";
+import { createWalletClient } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { base } from "viem/chains";
+import { viem } from "@goat-sdk/wallet-viem";
+import { USDC, erc20 } from "@goat-sdk/plugin-erc20";
+
+
+const account = privateKeyToAccount(process.env.WALLET_PRIVATE_KEY as `0x${string}`);
+
+const walletClient = createWalletClient({
+  account: account,
+  transport: http(process.env.RPC_PROVIDER_URL),
+  chain: base,
+});
+
 
 const apiKey = process.env.CROSSMINT_API_KEY;
 if (!apiKey) {
@@ -46,9 +54,9 @@ const getUserInput = () => {
 (async () => {
   try {
     const tools = await getOnChainTools({
-      wallet: solana({ keypair, connection }),
+      wallet: viem(walletClient),
       plugins: [
-        splToken({ tokens: [USDC] }),
+        erc20({ tokens: [USDC] }), // Enable ERC20 token operations
         crossmintHeadlessCheckout({ apiKey: apiKey as string }),
       ],
     });
@@ -78,13 +86,15 @@ const getUserInput = () => {
           content: `
             No need to check the token balance of the user first.
 
+            When fetching the wallet's balance, make sure to always convert the balance to the decimals and not base units.
+            
             When buying a product:
             Always ask for ALL required information in the first response:
             1) Name
             2) Shipping address
             3) Recipient email address
             4) Payment method (USDC, SOL, or ETH)
-            5) Preferred chain (EVM or Solana)
+            5) Preferred chain (EVM, Solana, Base)
             
             Only proceed with the purchase when all information is provided.
             1) Use productLocator format 'amazon:B08SVZ775L'
