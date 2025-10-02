@@ -1,0 +1,125 @@
+diff --git a/lib/cjs/bigint.js b/lib/cjs/bigint.js
+index 0462e8af7ae5fe2db34e4593d107dd04705dd858..05962ba302fc18d7ad0ff6a88d81bddc58c72c56 100644
+--- a/lib/cjs/bigint.js
++++ b/lib/cjs/bigint.js
+@@ -2,18 +2,49 @@
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.u256be = exports.u256 = exports.u192be = exports.u192 = exports.u128be = exports.u128 = exports.u64be = exports.u64 = exports.bigIntBE = exports.bigInt = void 0;
+ const buffer_layout_1 = require("@solana/buffer-layout");
+-const bigint_buffer_1 = require("bigint-buffer");
+ const base_1 = require("./base");
++function toBigIntLE(buffer) {
++    let result = 0n;
++    for (let i = 0; i < buffer.length; i++) {
++        result += BigInt(buffer[i]) << BigInt(8 * i);
++    }
++    return result;
++}
++function toBufferLE(bigint, length) {
++    const buffer = Buffer.alloc(length);
++    let value = bigint;
++    for (let i = 0; i < length; i++) {
++        buffer[i] = Number(value & 0xFFn);
++        value = value >> 8n;
++    }
++    return buffer;
++}
++function toBigIntBE(buffer) {
++    let result = 0n;
++    for (let i = 0; i < buffer.length; i++) {
++        result = (result << 8n) + BigInt(buffer[i]);
++    }
++    return result;
++}
++function toBufferBE(bigint, length) {
++    const buffer = Buffer.alloc(length);
++    let value = bigint;
++    for (let i = length - 1; i >= 0; i--) {
++        buffer[i] = Number(value & 0xFFn);
++        value = value >> 8n;
++    }
++    return buffer;
++}
+ const bigInt = (length) => (property) => {
+     const layout = (0, buffer_layout_1.blob)(length, property);
+     const { encode, decode } = (0, base_1.encodeDecode)(layout);
+     const bigIntLayout = layout;
+     bigIntLayout.decode = (buffer, offset) => {
+         const src = decode(buffer, offset);
+-        return (0, bigint_buffer_1.toBigIntLE)(Buffer.from(src));
++        return toBigIntLE(Buffer.from(src));
+     };
+     bigIntLayout.encode = (bigInt, buffer, offset) => {
+-        const src = (0, bigint_buffer_1.toBufferLE)(bigInt, length);
++        const src = toBufferLE(bigInt, length);
+         return encode(src, buffer, offset);
+     };
+     return bigIntLayout;
+@@ -25,10 +56,10 @@ const bigIntBE = (length) => (property) => {
+     const bigIntLayout = layout;
+     bigIntLayout.decode = (buffer, offset) => {
+         const src = decode(buffer, offset);
+-        return (0, bigint_buffer_1.toBigIntBE)(Buffer.from(src));
++        return toBigIntBE(Buffer.from(src));
+     };
+     bigIntLayout.encode = (bigInt, buffer, offset) => {
+-        const src = (0, bigint_buffer_1.toBufferBE)(bigInt, length);
++        const src = toBufferBE(bigInt, length);
+         return encode(src, buffer, offset);
+     };
+     return bigIntLayout;
+diff --git a/lib/esm/bigint.mjs b/lib/esm/bigint.mjs
+index 802bcc2e66d10cbf1e4a43ae600585d2cd966ed1..99606913b77e5befff6fd91ba32d70eb4277417b 100644
+--- a/lib/esm/bigint.mjs
++++ b/lib/esm/bigint.mjs
+@@ -1,6 +1,37 @@
+ import { blob } from '@solana/buffer-layout';
+-import { toBigIntBE, toBigIntLE, toBufferBE, toBufferLE } from 'bigint-buffer';
+ import { encodeDecode } from './base.mjs';
++function toBigIntLE(buffer) {
++    let result = 0n;
++    for (let i = 0; i < buffer.length; i++) {
++        result += BigInt(buffer[i]) << BigInt(8 * i);
++    }
++    return result;
++}
++function toBufferLE(bigint, length) {
++    const buffer = Buffer.alloc(length);
++    let value = bigint;
++    for (let i = 0; i < length; i++) {
++        buffer[i] = Number(value & 0xFFn);
++        value = value >> 8n;
++    }
++    return buffer;
++}
++function toBigIntBE(buffer) {
++    let result = 0n;
++    for (let i = 0; i < buffer.length; i++) {
++        result = (result << 8n) + BigInt(buffer[i]);
++    }
++    return result;
++}
++function toBufferBE(bigint, length) {
++    const buffer = Buffer.alloc(length);
++    let value = bigint;
++    for (let i = length - 1; i >= 0; i--) {
++        buffer[i] = Number(value & 0xFFn);
++        value = value >> 8n;
++    }
++    return buffer;
++}
+ export const bigInt = (length) => (property) => {
+     const layout = blob(length, property);
+     const { encode, decode } = encodeDecode(layout);
+diff --git a/package.json b/package.json
+index b91cc43799f36eeedcbd26fdb4862c21cc399883..47d579406e2cda1698f6974df1c8971529f30fe7 100644
+--- a/package.json
++++ b/package.json
+@@ -40,7 +40,6 @@
+     "dependencies": {
+         "@solana/buffer-layout": "^4.0.0",
+         "@solana/web3.js": "^1.32.0",
+-        "bigint-buffer": "^1.1.5",
+         "bignumber.js": "^9.0.1"
+     },
+     "devDependencies": {
