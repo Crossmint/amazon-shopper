@@ -16,7 +16,7 @@
     "@goat-sdk/wallet-solana": "0.2.13",
     "@goat-sdk/wallet-viem": "0.2.6",
     "@solana/web3.js": "1.98.0",
-    "ai": "4.1.0",
+    "ai": "5.0.52",
     "bs58": "^6.0.0",
     "dotenv": "^16.3.1",
     "ts-node": "^10.9.2",
